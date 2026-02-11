@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Global Chat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    #usernameScreen, #chatScreen {
+      width: 95%;
+      max-width: 500px;
+      background: #1e293b;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    }
+
+    h2 {
+      margin-top: 0;
+      text-align: center;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 5px;
+      border: none;
+      outline: none;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #2563eb;
+    }
+
+    #messages {
+      height: 300px;
+      overflow-y: auto;
+      margin-bottom: 10px;
+      padding: 10px;
+      background: #0f172a;
+      border-radius: 5px;
+    }
+
+    .message {
+      margin-bottom: 8px;
+    }
+
+    .username {
+      font-weight: bold;
+      color: #60a5fa;
+    }
+  </style>
+</head>
+<body>
+
+<div id="usernameScreen">
+  <h2>Enter Username</h2>
+  <input id="usernameInput" placeholder="Username" />
+  <button onclick="setUsername()">Join Chat</button>
+</div>
+
+<div id="chatScreen" style="display:none;">
+  <h2>Global Chat</h2>
+  <div id="messages"></div>
+  <input id="messageInput" placeholder="Type message..." />
+  <button onclick="sendMessage()">Send</button>
+</div>
+
+<script>
+  let username = "";
+
+  function setUsername() {
+    const input = document.getElementById("usernameInput").value.trim();
+    if (!input) return alert("Username required");
+    username = input;
+    document.getElementById("usernameScreen").style.display = "none";
+    document.getElementById("chatScreen").style.display = "block";
+  }
+
+  function sendMessage() {
+    const messageInput = document.getElementById("messageInput");
+    const message = messageInput.value.trim();
+    if (!message) return;
+
+    const msgDiv = document.createElement("div");
+    msgDiv.className = "message";
+    msgDiv.innerHTML = `<span class="username">${username}:</span> ${message}`;
+
+    document.getElementById("messages").appendChild(msgDiv);
+    messageInput.value = "";
+  }
+</script>
+
+</body>
+</html>
