@@ -1,92 +1,150 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Global Chat</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lolscord</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
   <style>
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: #0f172a;
-      color: white;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #313338;
+      color: #dbdee1;
       display: flex;
-      justify-content: center;
-      align-items: center;
+      flex-direction: column;
       height: 100vh;
     }
 
-    #usernameScreen, #chatScreen {
-      width: 95%;
-      max-width: 500px;
-      background: #1e293b;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    /* Top bar */
+    .topbar {
+      background: #2b2d31;
+      padding: 15px;
+      font-weight: 600;
+      border-bottom: 1px solid #1e1f22;
     }
 
-    h2 {
-      margin-top: 0;
-      text-align: center;
+    /* Chat area */
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .message {
+      display: flex;
+      margin-bottom: 15px;
+    }
+
+    .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #5865f2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      margin-right: 12px;
+      color: white;
+    }
+
+    .content {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .username {
+      font-weight: 600;
+      font-size: 14px;
+      color: #ffffff;
+    }
+
+    .text {
+      font-size: 15px;
+      margin-top: 2px;
+      color: #dbdee1;
+    }
+
+    /* Input area */
+    .input-area {
+      background: #383a40;
+      padding: 15px;
+    }
+
+    .input-wrapper {
+      background: #404249;
+      border-radius: 8px;
+      padding: 10px;
+      display: flex;
+      align-items: center;
     }
 
     input {
-      width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      border-radius: 5px;
+      flex: 1;
+      background: transparent;
       border: none;
       outline: none;
-      box-sizing: border-box;
+      color: white;
+      font-size: 14px;
     }
 
     button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      background: #3b82f6;
-      color: white;
+      background: #5865f2;
       border: none;
-      border-radius: 5px;
+      padding: 8px 12px;
+      color: white;
+      border-radius: 6px;
       cursor: pointer;
     }
 
     button:hover {
-      background: #2563eb;
+      background: #4752c4;
     }
 
-    #messages {
-      height: 300px;
-      overflow-y: auto;
-      margin-bottom: 10px;
-      padding: 10px;
-      background: #0f172a;
-      border-radius: 5px;
+    /* Username modal */
+    #usernameModal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
 
-    .message {
-      margin-bottom: 8px;
+    .modal-box {
+      background: #2b2d31;
+      padding: 30px;
+      border-radius: 10px;
+      width: 300px;
     }
 
-    .username {
-      font-weight: bold;
-      color: #60a5fa;
+    .modal-box h2 {
+      margin-top: 0;
     }
   </style>
 </head>
 <body>
 
-<div id="usernameScreen">
-  <h2>Enter Username</h2>
-  <input id="usernameInput" placeholder="Username" />
-  <button onclick="setUsername()">Join Chat</button>
+<div class="topbar">
+  # global-chat
 </div>
 
-<div id="chatScreen" style="display:none;">
-  <h2>Global Chat</h2>
-  <div id="messages"></div>
-  <input id="messageInput" placeholder="Type message..." />
-  <button onclick="sendMessage()">Send</button>
+<div id="messages"></div>
+
+<div class="input-area">
+  <div class="input-wrapper">
+    <input id="messageInput" placeholder="Message #global-chat"/>
+    <button onclick="sendMessage()">Send</button>
+  </div>
+</div>
+
+<!-- Username Modal -->
+<div id="usernameModal">
+  <div class="modal-box">
+    <h2>Enter Username</h2>
+    <input id="usernameInput" placeholder="Username"/>
+    <button onclick="setUsername()" style="margin-top:10px;">Join</button>
+  </div>
 </div>
 
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
@@ -97,10 +155,7 @@
 
   function setUsername() {
     const input = document.getElementById("usernameInput").value.trim();
-    if (!input) {
-      alert("Username required");
-      return;
-    }
+    if (!input) return;
 
     username = input;
 
@@ -110,13 +165,18 @@
       addMessage(data.username, data.message);
     });
 
-    document.getElementById("usernameScreen").style.display = "none";
-    document.getElementById("chatScreen").style.display = "block";
+    socket.on("load messages", (messages) => {
+      messages.forEach(msg => {
+        addMessage(msg.username, msg.message);
+      });
+    });
+
+    document.getElementById("usernameModal").style.display = "none";
   }
 
   function sendMessage() {
-    const messageInput = document.getElementById("messageInput");
-    const message = messageInput.value.trim();
+    const input = document.getElementById("messageInput");
+    const message = input.value.trim();
     if (!message) return;
 
     socket.emit("chat message", {
@@ -124,13 +184,34 @@
       message: message
     });
 
-    messageInput.value = "";
+    input.value = "";
   }
 
   function addMessage(user, message) {
     const msgDiv = document.createElement("div");
     msgDiv.className = "message";
-    msgDiv.innerHTML = `<span class="username">${user}:</span> ${message}`;
+
+    const avatar = document.createElement("div");
+    avatar.className = "avatar";
+    avatar.textContent = user.charAt(0).toUpperCase();
+
+    const content = document.createElement("div");
+    content.className = "content";
+
+    const name = document.createElement("div");
+    name.className = "username";
+    name.textContent = user;
+
+    const text = document.createElement("div");
+    text.className = "text";
+    text.textContent = message;
+
+    content.appendChild(name);
+    content.appendChild(text);
+
+    msgDiv.appendChild(avatar);
+    msgDiv.appendChild(content);
+
     document.getElementById("messages").appendChild(msgDiv);
 
     const messagesDiv = document.getElementById("messages");
@@ -138,9 +219,7 @@
   }
 
   document.getElementById("messageInput").addEventListener("keypress", function(e) {
-    if (e.key === "Enter") {
-      sendMessage();
-    }
+    if (e.key === "Enter") sendMessage();
   });
 </script>
 
