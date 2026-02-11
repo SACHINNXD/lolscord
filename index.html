@@ -3,6 +3,7 @@
 <head>
   <title>Global Chat</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <style>
     body {
       margin: 0;
@@ -36,6 +37,7 @@
       border-radius: 5px;
       border: none;
       outline: none;
+      box-sizing: border-box;
     }
 
     button {
@@ -87,13 +89,27 @@
   <button onclick="sendMessage()">Send</button>
 </div>
 
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
 <script>
   let username = "";
+  let socket;
 
   function setUsername() {
     const input = document.getElementById("usernameInput").value.trim();
-    if (!input) return alert("Username required");
+    if (!input) {
+      alert("Username required");
+      return;
+    }
+
     username = input;
+
+    socket = io("https://lolscord-backend.onrender.com");
+
+    socket.on("chat message", (data) => {
+      addMessage(data.username, data.message);
+    });
+
     document.getElementById("usernameScreen").style.display = "none";
     document.getElementById("chatScreen").style.display = "block";
   }
@@ -103,13 +119,29 @@
     const message = messageInput.value.trim();
     if (!message) return;
 
-    const msgDiv = document.createElement("div");
-    msgDiv.className = "message";
-    msgDiv.innerHTML = `<span class="username">${username}:</span> ${message}`;
+    socket.emit("chat message", {
+      username: username,
+      message: message
+    });
 
-    document.getElementById("messages").appendChild(msgDiv);
     messageInput.value = "";
   }
+
+  function addMessage(user, message) {
+    const msgDiv = document.createElement("div");
+    msgDiv.className = "message";
+    msgDiv.innerHTML = `<span class="username">${user}:</span> ${message}`;
+    document.getElementById("messages").appendChild(msgDiv);
+
+    const messagesDiv = document.getElementById("messages");
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  }
+
+  document.getElementById("messageInput").addEventListener("keypress", function(e) {
+    if (e.key === "Enter") {
+      sendMessage();
+    }
+  });
 </script>
 
 </body>
