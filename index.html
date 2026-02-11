@@ -15,7 +15,6 @@
       height: 100vh;
     }
 
-    /* Top bar */
     .topbar {
       background: #2b2d31;
       padding: 15px;
@@ -23,7 +22,6 @@
       border-bottom: 1px solid #1e1f22;
     }
 
-    /* Chat area */
     #messages {
       flex: 1;
       overflow-y: auto;
@@ -62,10 +60,8 @@
     .text {
       font-size: 15px;
       margin-top: 2px;
-      color: #dbdee1;
     }
 
-    /* Input area */
     .input-area {
       background: #383a40;
       padding: 15px;
@@ -101,7 +97,6 @@
       background: #4752c4;
     }
 
-    /* Username modal */
     #usernameModal {
       position: fixed;
       inset: 0;
@@ -116,10 +111,6 @@
       padding: 30px;
       border-radius: 10px;
       width: 300px;
-    }
-
-    .modal-box h2 {
-      margin-top: 0;
     }
   </style>
 </head>
@@ -138,7 +129,6 @@
   </div>
 </div>
 
-<!-- Username Modal -->
 <div id="usernameModal">
   <div class="modal-box">
     <h2>Enter Username</h2>
@@ -159,16 +149,17 @@
 
     username = input;
 
-    socket = io("https://lolscord-backend.onrender.com");
+    socket = io("https://lolscord-backend-8ghq.onrender.com");
 
-    socket.on("chat message", (data) => {
-      addMessage(data.username, data.message);
+    // Load old messages
+    socket.on("load messages", (messages) => {
+      document.getElementById("messages").innerHTML = "";
+      messages.forEach(addMessage);
     });
 
-    socket.on("load messages", (messages) => {
-      messages.forEach(msg => {
-        addMessage(msg.username, msg.message);
-      });
+    // Listen for new messages
+    socket.on("chat message", (data) => {
+      addMessage(data);
     });
 
     document.getElementById("usernameModal").style.display = "none";
@@ -187,24 +178,25 @@
     input.value = "";
   }
 
-  function addMessage(user, message) {
+  function addMessage(data) {
     const msgDiv = document.createElement("div");
     msgDiv.className = "message";
 
     const avatar = document.createElement("div");
     avatar.className = "avatar";
-    avatar.textContent = user.charAt(0).toUpperCase();
+    avatar.textContent = data.username.charAt(0).toUpperCase();
 
     const content = document.createElement("div");
     content.className = "content";
 
     const name = document.createElement("div");
     name.className = "username";
-    name.textContent = user;
+    name.textContent = data.username;
 
     const text = document.createElement("div");
+    name.className = "username";
     text.className = "text";
-    text.textContent = message;
+    text.textContent = data.message;
 
     content.appendChild(name);
     content.appendChild(text);
